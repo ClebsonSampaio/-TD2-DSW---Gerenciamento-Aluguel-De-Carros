@@ -19,7 +19,6 @@ const PaymentForm = ({
 }: PaymentFormProps) => {
   const navigate = useNavigate();
   const { id } = useParams();
-
   const [aluguelId, setAluguelId] = useState("");
   const [valor, setValor] = useState(0);
   const [status, setStatus] = useState<"PAGO" | "PENDENTE">("PENDENTE");
@@ -37,7 +36,6 @@ const PaymentForm = ({
     }
   }, [id, payments]);
 
-  // Atualiza valor automaticamente ao escolher aluguel
   useEffect(() => {
     if (!aluguelId) {
       setValor(0);
@@ -53,18 +51,20 @@ const PaymentForm = ({
       setValor(0);
       return;
     }
-    // Calcula dias entre datas inclusivo
     const start = new Date(rent.startDate);
     const end = new Date(rent.endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
     setValor(diffDays * car.precoPorDia);
   }, [aluguelId, rents, cars]);
 
+  const formatDateToBR = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("pt-BR");
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!aluguelId) {
       alert("Selecione um aluguel.");
       return;
@@ -73,14 +73,12 @@ const PaymentForm = ({
       alert("Valor do pagamento inválido.");
       return;
     }
-
     const payment: Payment = {
       id: editMode ? (id as string) : Date.now().toString(),
       aluguelId,
       valor,
       status,
     };
-
     onSave(payment, editMode);
   };
 
@@ -100,7 +98,8 @@ const PaymentForm = ({
             const carModel = cars.find((c) => c.id === r.carId)?.modelo;
             return (
               <option key={r.id} value={r.id}>
-                {personName} - {carModel} ({r.startDate} até {r.endDate})
+                {personName} - {carModel} ({formatDateToBR(r.startDate)} até{" "}
+                {formatDateToBR(r.endDate)})
               </option>
             );
           })}
